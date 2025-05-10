@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>com3528_team8</name>
+  <version>0.0.1</version>
+  <description>The COM3528 team 8 package</description>
+
+  <maintainer email="eholloway1@sheffield.ac.uk">Ethan Holloway</maintainer>
+  <url></url>
+  <license>CC BY-NC</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_export_depend>cv_bridge</build_export_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+
+  <export>
+  </export>
+
+</package>
