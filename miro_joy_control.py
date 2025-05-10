@@ -4,22 +4,26 @@ import rospy
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import TwistStamped
 
+# Store the latest trigger values
+latest_rt = 0.0
+latest_lt = 0.0
+
 def joy_callback(data):
-    # Create a stamped Twist message
-    msg = TwistStamped()
-    msg.header.stamp = rospy.Time.now()
+    global latest_rt, latest_lt
+    latest_rt = (1.0 - data.axes[5]) / 2.0  # RT normalized
+    latest_lt = (1.0 - data.axes[2]) / 2.0  # LT normalized
 
-    # RT is axes[5], LT is axes[2]
-    rt_val = (1.0 - data.axes[5]) / 2.0  # Normalized: 0.0 to 1.0
-    lt_val = (1.0 - data.axes[2]) / 2.0  # Normalized: 0.0 to 1.0
-
-    # Forward is RT, backward is LT
-    msg.twist.linear.x = rt_val - lt_val  # Range: -1.0 to +1.0
-
-    pub.publish(msg)
+def publish_cmd_vel():
+    rate = rospy.Rate(20)  # 20 Hz
+    while not rospy.is_shutdown():
+        msg = TwistStamped()
+        msg.header.stamp = rospy.Time.now()
+        msg.twist.linear.x = latest_rt - latest_lt
+        pub.publish(msg)
+        rate.sleep()
 
 rospy.init_node('miro_joy_control')
 pub = rospy.Publisher('/miro/control/cmd_vel', TwistStamped, queue_size=10)
 rospy.Subscriber('/joy', Joy, joy_callback)
-rospy.spin()
 
+publish_cmd_vel()
