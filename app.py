@@ -7,6 +7,16 @@ from multiprocessing import Process, Queue
 from visionRetrieve import Display
 from flask_cors import CORS
 import socket
+import math
+
+# Attempt ROS import
+try:
+    import rospy
+    from std_msgs.msg import Float64
+    ROS_AVAILABLE = True
+except ImportError:
+    ROS_AVAILABLE = False
+    print("[WARN] rospy not available, skipping ROS integration.")
 
 app = Flask(__name__)
 CORS(app)
@@ -36,6 +46,28 @@ latest_orientation = {
     'w': 1.0
 }
 
+# Initialize ROS if available
+if ROS_AVAILABLE:
+    try:
+        rospy.init_node('webxr_miro_bridge', anonymous=True)
+        yaw_pub = rospy.Publisher('/miro/command/head_yaw', Float64, queue_size=10)
+        pitch_pub = rospy.Publisher('/miro/command/head_pitch', Float64, queue_size=10)
+        print("[ROS] Publishers ready.")
+    except Exception as e:
+        ROS_AVAILABLE = False
+        print(f"[ERROR] Could not initialize ROS: {e}")
+
+def quaternion_to_yaw_pitch(x, y, z, w):
+    t0 = +2.0 * (w * z + x * y)
+    t1 = +1.0 - 2.0 * (y * y + z * z)
+    yaw = math.atan2(t0, t1)
+
+    t2 = +2.0 * (w * y - z * x)
+    t2 = max(min(t2, 1.0), -1.0)
+    pitch = math.asin(t2)
+
+    return yaw, pitch
+
 @app.route('/post_orientation', methods=['POST'])
 def post_orientation():
     global latest_orientation
@@ -43,7 +75,20 @@ def post_orientation():
 
     if data and all(k in data for k in ('x', 'y', 'z', 'w')):
         latest_orientation = data
-        print(f"[VR] Orientation received: {latest_orientation}")
+        x, y, z, w = data['x'], data['y'], data['z'], data['w']
+        yaw, pitch = quaternion_to_yaw_pitch(x, y, z, w)
+
+        print(f"[VR] Orientation received: yaw={yaw:.2f}, pitch={pitch:.2f}")
+
+        if ROS_AVAILABLE:
+            try:
+                yaw_pub.publish(Float64(yaw))
+                pitch_pub.publish(Float64(pitch))
+            except Exception as e:
+                print(f"[ERROR] Failed to publish to ROS: {e}")
+        else:
+            print("[ROS] Skipped: ROS not available or not initialized")
+
         return {'status': 'ok'}, 200
     else:
         return {'error': 'Invalid data'}, 400
