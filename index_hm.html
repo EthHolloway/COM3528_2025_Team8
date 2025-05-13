@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Robot Stereo Stream - WebXR</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    #startButton {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 999;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <button id="startButton">Start Stream</button>
+
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.157/build/three.module.js';
+    import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.157/examples/jsm/webxr/VRButton.js';
+
+    let scene, camera, renderer, texture, plane, canvas, ctx;
+    let image = new Image();
+    let xrRefSpace = null;
+
+    let orientationEndpoint = 'https://' + window.location.hostname + '/post_orientation';
+
+    function sendOrientation(q) {
+      fetch(orientationEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          x: q.x,
+          y: q.y,
+          z: q.z,
+          w: q.w
+        })
+      }).catch(err => console.error("Orientation POST failed", err));
+    }
+
+    document.getElementById('startButton').addEventListener('click', () => {
+      document.getElementById('startButton').style.display = 'none';
+      init();
+    });
+
+    function init() {
+      // Three.js scene setup
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 1;
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.xr.enabled = true;
+      document.body.appendChild(renderer.domElement);
+      document.body.appendChild(VRButton.createButton(renderer));
+
+      // Get XR reference space once session starts
+      renderer.xr.addEventListener('sessionstart', async () => {
+        const session = renderer.xr.getSession();
+        xrRefSpace = await session.requestReferenceSpace('local');
+      });
+
+      // Canvas for drawing image
+      canvas = document.createElement('canvas');
+      canvas.width = 1280;
+      canvas.height = 360;
+      ctx = canvas.getContext('2d');
+
+      texture = new THREE.Texture(canvas);
+      const material = new THREE.MeshBasicMaterial({ map: texture });
+      const geometry = new THREE.PlaneGeometry(2, 1);
+      plane = new THREE.Mesh(geometry, material);
+      scene.add(plane);
+
+      startFrameLoop();
+      animate();
+    }
+
+    function startFrameLoop() {
+      image.crossOrigin = "anonymous";
+
+      image.onload = () => {
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        texture.needsUpdate = true;
+      };
+
+      setInterval(() => {
+        image.src = '/video_feed?_=' + new Date().getTime();
+      }, 33); // ~30 FPS
+    }
+
+    function animate() {
+      renderer.setAnimationLoop((time, frame) => {
+        // Orientation tracking logic
+        if (frame && xrRefSpace) {
+          const pose = frame.getViewerPose(xrRefSpace);
+          if (pose) {
+            const q = pose.transform.orientation;
+            sendOrientation(q); // <-- Send to Flask server
+          }
+        }
+
+        renderer.render(scene, camera);
+      });
+    }
+  </script>
+</body>
+</html>
