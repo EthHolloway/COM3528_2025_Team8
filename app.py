@@ -1,4 +1,4 @@
-from flask import Flask, Response, render_template, make_response
+from flask import Flask, Response, render_template, make_response, request
 import threading
 import time
 import cv2
@@ -28,6 +28,25 @@ def vision_process(queue):
         time.sleep(0.033)
 
     print("[INFO] Vision process shutting down.")
+
+latest_orientation = {
+    'x': 0.0,
+    'y': 0.0,
+    'z': 0.0,
+    'w': 1.0
+}
+
+@app.route('/post_orientation', methods=['POST'])
+def post_orientation():
+    global latest_orientation
+    data = request.get_json()
+
+    if data and all(k in data for k in ('x', 'y', 'z', 'w')):
+        latest_orientation = data
+        print(f"[VR] Orientation received: {latest_orientation}")
+        return {'status': 'ok'}, 200
+    else:
+        return {'error': 'Invalid data'}, 400
 
 @app.route('/')
 def index():
