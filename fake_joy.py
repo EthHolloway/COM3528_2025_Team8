@@ -6,10 +6,9 @@ import time
 rospy.init_node('fake_joy_node')
 pub = rospy.Publisher('/joy', Joy, queue_size=10)
 
-rate = rospy.Rate(10)  # 10 Hz
+rate = rospy.Rate(10)
 
 # Trigger axis values: 1.0 = unpressed, -1.0 = fully pressed
-# We'll simulate a full press of RT or LT
 
 def make_joy(rt_val=1.0, lt_val=1.0):
     joy = Joy()
@@ -22,20 +21,20 @@ def make_joy(rt_val=1.0, lt_val=1.0):
 
     return joy
 
-rospy.loginfo("Publishing fake Joy messages: alternating RT and LT")
+rospy.loginfo("Alternating fake RT and LT clicks")
 
 while not rospy.is_shutdown():
     # Simulate RT pressed
     pub.publish(make_joy(rt_val=-1.0, lt_val=1.0))
-    rospy.loginfo("Simulating: RT pressed")
+    rospy.loginfo("RT pressed")
     time.sleep(2)
 
     # Simulate LT pressed
     pub.publish(make_joy(rt_val=1.0, lt_val=-1.0))
-    rospy.loginfo("Simulating: LT pressed")
+    rospy.loginfo("LT pressed")
     time.sleep(2)
 
     # Neutral
     pub.publish(make_joy(rt_val=1.0, lt_val=1.0))
-    rospy.loginfo("Simulating: No trigger pressed")
+    rospy.loginfo("No trigger pressed")
     time.sleep(1)
