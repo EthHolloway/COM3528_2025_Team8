@@ -31,6 +31,24 @@
 
     let scene, camera, renderer, texture, plane, canvas, ctx;
     let image = new Image();
+    let xrRefSpace = null;
+
+    let orientationEndpoint = 'https://' + window.location.hostname + '/post_orientation';
+
+    function sendOrientation(q) {
+      fetch(orientationEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          x: q.x,
+          y: q.y,
+          z: q.z,
+          w: q.w
+        })
+      }).catch(err => console.error("Orientation POST failed", err));
+    }
 
     document.getElementById('startButton').addEventListener('click', () => {
       document.getElementById('startButton').style.display = 'none';
@@ -48,6 +66,12 @@
       renderer.xr.enabled = true;
       document.body.appendChild(renderer.domElement);
       document.body.appendChild(VRButton.createButton(renderer));
+
+      // Get XR reference space once session starts
+      renderer.xr.addEventListener('sessionstart', async () => {
+        const session = renderer.xr.getSession();
+        xrRefSpace = await session.requestReferenceSpace('local');
+      });
 
       // Canvas for drawing image
       canvas = document.createElement('canvas');
@@ -79,7 +103,16 @@
     }
 
     function animate() {
-      renderer.setAnimationLoop(() => {
+      renderer.setAnimationLoop((time, frame) => {
+        // Orientation tracking logic
+        if (frame && xrRefSpace) {
+          const pose = frame.getViewerPose(xrRefSpace);
+          if (pose) {
+            const q = pose.transform.orientation;
+            sendOrientation(q); // <-- Send to Flask server
+          }
+        }
+
         renderer.render(scene, camera);
       });
     }
