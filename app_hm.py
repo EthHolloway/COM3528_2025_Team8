@@ -95,7 +95,7 @@ def post_orientation():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index_hm.html')
 
 @app.route('/video_feed')
 def video_feed():
