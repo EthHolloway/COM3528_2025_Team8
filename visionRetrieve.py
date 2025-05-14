@@ -11,7 +11,7 @@ import numpy as np
 class Display:
     def __init__(self):
         rospy.init_node("MiRo_Display", anonymous=True)
-        topic_base_name = "/" + os.getenv("MIRO_ROBOT_NAME", "miro")  # default fallback name
+        topic_base_name = "/" + os.getenv("MIRO_ROBOT_NAME", "miro")
 
         self.bridge = CvBridge()
         self.miro_cams = [None, None]

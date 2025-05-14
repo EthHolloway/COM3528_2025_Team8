@@ -35,7 +35,7 @@ def video_feed():
     """stream MJPEG from the frame_queue as multipart/x-mixed-replace."""
     def generate():
         while True:
-            frame = frame_queue.get()               # block until a frame is available
+            frame = frame_queue.get()              
             success, jpeg = cv2.imencode('.jpg', frame)
             if not success:
                 continue

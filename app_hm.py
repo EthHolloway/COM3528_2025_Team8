@@ -9,7 +9,6 @@ from flask_cors import CORS
 import socket
 import math
 
-# Attempt ROS import
 try:
     import rospy
     from std_msgs.msg import Float64
@@ -46,7 +45,6 @@ latest_orientation = {
     'w': 1.0
 }
 
-# Initialize ROS if available
 if ROS_AVAILABLE:
     try:
         rospy.init_node('webxr_miro_bridge', anonymous=True)

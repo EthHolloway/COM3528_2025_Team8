@@ -50,7 +50,7 @@ if __name__ == '__main__':
     vision_proc.start()
 
     try:
-        print("Access the server from other devices at: https://<your-ngrok-subdomain>.ngrok.io")
+        print("Access the server locally via 127.0.0.1:5000 for testing, access over wifi via http://<localhost>:5000")
         app.run(host='0.0.0.0', port=5000)
     finally:
         vision_proc.terminate()

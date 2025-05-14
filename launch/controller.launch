@@ -1,13 +1,32 @@
 <?xml version="1.0"?>
+
 <launch>
 
-  <!-- Set the joystick device -->
+  <!-- Set joystick device -->
   <param name="joy_node/dev" value="/dev/input/js0"/>
 
-  <!-- Run the joystick driver -->
+  <!-- Run joystick driver -->
+  <node pkg="joy"
+        type="joy_node"
+        name="joy_node"
+        output="screen"/>
+
+  <!-- Run control node explicitly via python3 -->
+  <node pkg="com3528_team8"
+        type="miro_joy_control.py"
+        name="miro_joy_control"
+        launch-prefix="python3"
+        output="screen"/>
+
+</launch>
+
+
+<!-- <launch>
+
+  <param name="joy_node/dev" value="/dev/input/js0"/>
+
   <node pkg="joy" type="joy_node" name="joy_node" output="screen"/>
 
-  <!-- Run the control node -->
   <node pkg="com3528_team8" 
         type="miro_joy_control.py" 
         name="miro_joy_control" 
@@ -16,3 +35,4 @@
   
 
 </launch>
+ -->
