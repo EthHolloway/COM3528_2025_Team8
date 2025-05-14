@@ -28,7 +28,7 @@ def vision_process(queue):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index_ngrok_frozen_image.html')
 
 @app.route('/video_feed')
 def video_feed():
