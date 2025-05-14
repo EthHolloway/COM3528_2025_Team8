@@ -1,10 +1,10 @@
 How to run the code:
-Once connected to the physical MiRO on a native Linux system, and an Xbox controller is plugged in via USB to the laptop:
+Once connected to the physical MiRO on a native Linux system, "catkin build" executed and an Xbox controller is plugged in via USB to the laptop:
 
 1. Navigate to ~/catkin_ws/src/COM3528_2025_Team8
 2. Ensure "roscore" is running in a terminal, or that laptop connected to MiRo
 3. Source the environment
-4. Run "roslaunch com3528_team8 controller.launch" to launch the controller code
+4. Run "roslaunch com3528_team8 controller.launch" to launch the controller code, ensure scripts/miro_joy_control.py is executable (chmod +x scripts/miro_joy_control.py) 
 5. Run "python3 app.py" to launch the video streaming service
 6. Click the link or navigate to "http://<localhost>:5000" in a browser connected to the same local network
 7. Click "Start Stream" to see the live feed
